@@ -1,0 +1,55 @@
+syntax = "proto2";
+
+package Main.proto;
+
+ option java_outer_classname = "ExchangeMessage";
+// *************************************************
+// Messages shared by the Billing service and Kafka workflow
+// *************************************************
+
+// This is the generic message that can be sent through Kafka.
+// All messages can be serialized and written to the internals of this message for transport.
+message Kafka {
+	optional string message_type = 1;
+	required bytes serialized_message = 2;
+}
+
+// The different payment types the client can use
+enum PaymentType {
+  VISA = 0;
+  MASTERCARD = 1;
+  DISCOVER = 2;
+  AMEX = 3;
+}
+
+// This is the message the client fills out when it wants to make a payment
+message PaymentClient {
+	optional PaymentType payment_type = 1;
+	optional double amount = 2;
+}
+
+// This is the message the proxy will fill out and send through Kafka to the backend
+message PaymentBackend {
+	optional PaymentClient client_payment_info = 1;
+	optional uint64 transaction_id = 2;
+	optional string proxy_topic = 3;
+	optional bool payment_accepted = 4;
+	optional string error_message = 5;
+}
+
+
+// *************************************************
+// Billing service and messages used by the client and proxy only
+// *************************************************
+
+// The message the proxy responds with from a client's payment request
+message PaymentResponse {
+	optional PaymentClient client_payment_info = 1;
+	optional bool payment_accepted = 2;
+	optional string error_message = 3;
+}
+
+service Billing {
+  // The client wants to make a payment
+  rpc MakePayment (PaymentClient) returns (PaymentResponse) {}
+}
