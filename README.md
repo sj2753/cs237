@@ -1,1 +1,2 @@
-# cs237
+# cs237 - Distributed Systems Middleware
+ 
